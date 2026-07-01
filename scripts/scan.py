@@ -3,8 +3,9 @@
 scan.py - Zero-dependency AEO / AI-visibility scanner.
 
 Fetches a site's robots.txt, raw HTML, and sitemap, queries free public APIs
-(Wikipedia, Wikidata, Reddit, Trustpilot), then runs a 31-point checklist across
-five pillars and prints a scored 0-100 report.
+(Wikipedia, Wikidata, Reddit, Trustpilot), then runs a 34-point checklist across
+five pillars and prints a scored 0-100 report. Detected stores get extra
+informational commerce checks; --compare benchmarks a competitor (Mode D).
 
 Standard library only. Python 3.8+.
 
@@ -89,6 +90,7 @@ class PageParser(HTMLParser):
         self.meta = {}            # name/property -> content
         self.canonical = None
         self.headings = {"h1": [], "h2": [], "h3": []}
+        self.heading_seq = []     # ordered tags, e.g. ["h1","h2","h3","h2"]
         self.jsonld = []          # list of parsed dicts
         self.text_parts = []
         self.blockquotes = 0
@@ -196,6 +198,7 @@ class PageParser(HTMLParser):
             txt = " ".join("".join(self._grab_buf).split())
             if txt:
                 self.headings[tag].append(txt)
+                self.heading_seq.append(tag)
             self._grab = None
         if tag == "p" and self._grab == "p":
             txt = " ".join("".join(self._grab_buf).split())
@@ -531,6 +534,23 @@ def run_checks(url, brand, do_apis):
             results.append(C("content", "structures", "warn", 1, 4,
                              "No data tables or lists detected.",
                              "Add comparison tables and numbered lists — AI reproduces these heavily."))
+        # C7: sequential heading hierarchy (~2.8x citation lift for clean nesting)
+        seq = parser.heading_seq
+        skips = 0
+        seen_h2 = False
+        for t in seq:
+            if t == "h2":
+                seen_h2 = True
+            elif t == "h3" and not seen_h2:
+                skips += 1
+        if seq and skips == 0 and parser.headings["h2"]:
+            results.append(C("content", "heading_hierarchy", "pass", 3, 3,
+                             "Headings nest sequentially (H2 before H3) — clean structure "
+                             "shows ~2.8x citation lift vs unstructured pages.", ""))
+        elif seq:
+            results.append(C("content", "heading_hierarchy", "warn", 1, 3,
+                             "Heading levels skip or nest out of order (H3 without a preceding H2).",
+                             "Fix heading order: one H1, then H2 sections, H3 only inside an H2."))
         # C6: freshness signal
         modified = parser.meta.get("article:modified_time") or (parser.ld_find("Article") or {}).get("dateModified")
         if modified or parser.has_time_tag or re.search(r"updated?\s+(on\s+)?\w+\s+\d", vis_text, re.I):
@@ -589,6 +609,46 @@ def run_checks(url, brand, do_apis):
         results.append(C("entity", "entity", "skip", 0, 20,
                          "Entity checks skipped — no HTML.", ""))
 
+    # ============================================ COMMERCE (informational, stores only)
+    if parser is not None and html:
+        platform = None
+        hl = html.lower()
+        if "cdn.shopify.com" in hl or "shopify" in hl and "myshopify" in hl:
+            platform = "Shopify"
+        elif "woocommerce" in hl:
+            platform = "WooCommerce"
+        elif "bigcommerce" in hl:
+            platform = "BigCommerce"
+        elif "magento" in hl or "adobe commerce" in hl:
+            platform = "Magento/Adobe Commerce"
+        product = parser.ld_find("Product")
+        is_store = bool(platform or product)
+        if is_store:
+            if product:
+                offers = product.get("offers") or {}
+                if isinstance(offers, list):
+                    offers = offers[0] if offers else {}
+                has_price = bool(isinstance(offers, dict) and
+                                 (offers.get("price") or offers.get("lowPrice")))
+                if has_price:
+                    results.append(C("commerce", "product_schema", "pass", 0, 0,
+                                     "Product JSON-LD with live Offer (price/availability) — feeds AI "
+                                     "shopping surfaces, the one schema area with clear AI payoff.", ""))
+                else:
+                    results.append(C("commerce", "product_schema", "warn", 0, 0,
+                                     "Product JSON-LD found but Offer lacks price/availability.",
+                                     "Complete offers.price, priceCurrency, availability (+ GTIN/MPN)."))
+            else:
+                results.append(C("commerce", "product_schema", "warn", 0, 0,
+                                 f"Store detected ({platform}) but no Product JSON-LD on this page.",
+                                 "Server-render complete Product schema on product pages."))
+            results.append(C("commerce", "agentic", "info", 0, 0,
+                             f"Store detected{f' ({platform})' if platform else ''}: AI assistants now "
+                             "complete purchases (ChatGPT Instant Checkout/ACP, Google UCP).",
+                             "Run the agentic-commerce readiness checklist "
+                             "(reference/agentic_commerce.md): feed completeness, "
+                             "ACP/UCP enrollment, PDP extractability."))
+
     # ============================================ PILLAR 5: TECHNICAL / FRESHNESS (support)
     # T1: sitemap
     sm_status, _, _, _ = fetch(urljoin(url, "/sitemap.xml"))
@@ -640,6 +700,7 @@ PILLAR_LABELS = {
     "content": "Content Citation-Readiness",
     "entity": "Entity Clarity",
     "technical": "Technical & Freshness",
+    "commerce": "Commerce / Agentic Readiness (info)",
 }
 
 
@@ -699,7 +760,7 @@ def render(url, brand, results, meta, total, by, access_fail):
 
     # pillar summary
     out.append("  PILLARS")
-    for p in ["access", "offsite", "content", "entity", "technical"]:
+    for p in ["access", "offsite", "content", "entity", "technical", "commerce"]:
         if p in by:
             d = by[p]
             out.append(f"    - {PILLAR_LABELS[p]:<42} {d['pts']}/{d['max']}")
@@ -707,7 +768,7 @@ def render(url, brand, results, meta, total, by, access_fail):
 
     # findings grouped
     order = {"fail": 0, "warn": 1, "skip": 2, "info": 3, "pass": 4}
-    for p in ["access", "offsite", "content", "entity", "technical"]:
+    for p in ["access", "offsite", "content", "entity", "technical", "commerce"]:
         rows = [r for r in results if r["pillar"] == p]
         if not rows:
             continue
@@ -742,6 +803,27 @@ def render(url, brand, results, meta, total, by, access_fail):
 
 # ------------------------------------------------------------------ main
 
+def render_compare(a_label, a_total, a_by, b_label, b_total, b_by):
+    """Pillar-by-pillar gap table between two scans (Mode D)."""
+    out = []
+    out.append("=" * 66)
+    out.append("  COMPETITOR BENCHMARK")
+    out.append("=" * 66)
+    out.append(f"  {'':<42} {a_label[:10]:>10} {b_label[:10]:>10}")
+    out.append(f"  {'TOTAL SCORE':<42} {a_total:>10} {b_total:>10}")
+    for p in ["access", "offsite", "content", "entity", "technical"]:
+        if p in a_by or p in b_by:
+            av = a_by.get(p, {"pts": 0})["pts"]
+            bv = b_by.get(p, {"pts": 0})["pts"]
+            marker = "  <-- gap" if bv > av else ""
+            out.append(f"  {PILLAR_LABELS[p]:<42} {av:>10} {bv:>10}{marker}")
+    out.append("")
+    out.append("  Read the gaps: off-site gaps take a quarter (earned media);")
+    out.append("  content/entity/access gaps are usually fixable in days.")
+    out.append("=" * 66)
+    return "\n".join(out)
+
+
 def main():
     ap = argparse.ArgumentParser(description="AEO / AI-visibility site scanner (zero-dependency).")
     ap.add_argument("url", help="Site URL, e.g. https://example.com")
@@ -749,6 +831,8 @@ def main():
     ap.add_argument("--json", default="", help="Write full results to this JSON path")
     ap.add_argument("--no-apis", action="store_true", help="Skip off-site API checks")
     ap.add_argument("--page", default="", help="Also scan a deep path, e.g. /pricing")
+    ap.add_argument("--compare", default="", help="Competitor URL to scan and diff (Mode D)")
+    ap.add_argument("--compare-brand", default="", help="Competitor brand name")
     args = ap.parse_args()
 
     url = args.url
@@ -759,6 +843,17 @@ def main():
     total, by, access_fail = score(results)
     report = render(url, args.brand.strip(), results, meta, total, by, access_fail)
     print(report)
+
+    if args.compare:
+        curl = args.compare if args.compare.startswith("http") else "https://" + args.compare
+        cbrand = args.compare_brand.strip()
+        cresults, cmeta = run_checks(curl, cbrand, not args.no_apis)
+        ctotal, cby, cfail = score(cresults)
+        print()
+        print(render(curl, cbrand, cresults, cmeta, ctotal, cby, cfail))
+        print()
+        print(render_compare(args.brand.strip() or meta["domain"], total, by,
+                             cbrand or cmeta["domain"], ctotal, cby))
 
     if args.json:
         payload = {"url": meta["final_url"], "brand": args.brand, "score": total,

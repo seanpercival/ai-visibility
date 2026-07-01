@@ -7,9 +7,9 @@ never blend into one score.
 
 | Engine | Index / backend | Cites most | How to win it |
 |---|---|---|---|
-| **ChatGPT** | Bing + own `OAI-SearchBot` index (+ growing Google use) | Wikipedia (~48% of its top-10), Reddit, major publishers | Least correlated with Google rank → **most winnable for small brands.** Register in **Bing Webmaster Tools**. Get a Wikipedia entry. |
+| **ChatGPT** | Bing + own `OAI-SearchBot` index; since early 2026, third-party tests show citations aligning increasingly with **Google's** SERP | Wikipedia (~48% of its top-10), Reddit, major publishers | Bing top-3 rank predicts the actual citation only ~7% of the time, and ChatGPT cites only ~15% of pages it retrieves (AirOps, 548K pages) — retrieval ≠ citation. Register in **Bing Webmaster Tools** (cheap insurance; still feeds Copilot), keep Google indexing healthy, get a Wikipedia entry, and make the page *quotable* so it survives the retrieve→cite cut. |
 | **Perplexity** | Own index (`PerplexityBot`) | Cites the *most* sources; YouTube-heavy since the Oct 2025 Reddit lawsuit | **Allow `PerplexityBot` or you're invisible.** Strong freshness bias — refresh key pages every 60–90 days. |
-| **Google AI Overviews / AI Mode** | `Googlebot` index + Gemini | UGC-heavy: Reddit, YouTube, Quora | Rides normal Google indexing + rankings. `Google-Extended` is training-only and doesn't affect AIO. |
+| **Google AI Overviews / AI Mode** | `Googlebot` index + Gemini, via RAG + **query fan-out** | UGC-heavy: Reddit, YouTube, Quora — and diversifying: only ~38% of AIO citations now come from Google top-10 results (down from ~76%) | Rides normal Google indexing + rankings, but fan-out means deep pages surface for queries they weren't written for. `Google-Extended` is training-only and doesn't affect AIO. Google's official guide (June 2026): AEO/GEO "is still SEO" — no llms.txt, no chunking, no AI-specific rewriting needed. |
 | **Gemini (app)** | Google grounding | Institutional / brand-owned sites (~52% owned) | "Trusts what the brand says." Keep your own site authoritative and current. |
 | **Claude** | **Brave Search** | Niche / trade / practitioner sources; PubMed; ~10-week freshness window | **The edge:** being cited by Claude = winning **Brave** visibility, not Google. Almost nobody optimizes for Brave. |
 
@@ -37,6 +37,18 @@ Anthropic's published subprocessor list, Mar 2025). Practical implications:
   which fits Claude's observed preference for niche and trade content.
 - If Claude visibility matters to a client, check Brave Search results for the
   target queries directly — it's the closest proxy to "what Claude sees."
+
+## Agentic browsers & assistants (the 2026 blind spot)
+
+A growing share of "AI traffic" isn't a crawler at all: agentic browsers
+(ChatGPT Atlas, Perplexity Comet, Claude for Chrome, Opera Neon) drive a real
+browser session, so their traffic **looks like a normal human user agent** and
+can't be controlled via robots.txt. Implications:
+- Don't gate content behind interactions a script can't perform (hover menus,
+  infinite scroll without fallback) — agent-friendly UX is becoming its own
+  discipline (see Google's agent-friendly site guidance / UCP).
+- Server-log bot counts *undercount* real AI usage. Treat `bot_traffic.py`
+  numbers as a floor, not a ceiling.
 
 ## Volatility warning
 

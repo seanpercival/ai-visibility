@@ -39,6 +39,26 @@ Severity-tagged; each is `[what we found] → [why it matters] → [fix]`.
 ### Strategic Investments — this quarter (off-site, compounding)
 - [ ] … *(earned media: reviews, Reddit, best-of listicles, PR, Wikipedia/Wikidata)*
 
+### Competitor benchmark {include when Mode D was run}
+| Pillar | {Brand} | {Competitor} | Gap read |
+|---|---|---|---|
+| Total | | | |
+| Off-site | | | {who owns the earned media} |
+| Content | | | |
+| Entity | | | |
+
+One paragraph: where they beat you, what closing each gap costs (days vs a
+quarter), and the single gap to attack first.
+
+### Commerce / agentic readiness {stores only}
+Product schema status, feed hygiene, ACP/UCP readiness — from
+`reference/agentic_commerce.md`. Flag plainly if the store can be *recommended*
+but not *transacted* by an AI agent.
+
+### AI bot traffic {include when a server log was analyzed}
+Which engines actually crawl the site (`bot_traffic.py`), which are absent, and
+what that means. Note: agentic browsers are invisible in logs — counts are a floor.
+
 ### What we did NOT measure
 - Live share of voice across engines → run **Mode B** (`prompt_panel.py`).
 - Brand-mention volume / backlinks → needs a SERP or SEO API.
@@ -48,9 +68,11 @@ Severity-tagged; each is `[what we found] → [why it matters] → [fix]`.
 
 ### Follow-up menu (always offer)
 Would you like me to:
-- **Generate the fixes** — corrected robots.txt, `Organization`+`sameAs` schema, answer-first rewrites of your top pages, and an earned-media target list?
+- **Generate the fixes** — corrected robots.txt, `Organization`+`sameAs` schema, answer-first rewrites of your top pages, a fan-out coverage map, and an earned-media target list?
 - **Measure live visibility** — build a prompt panel and run it across engines (frequency + share of voice)?
-- **Benchmark a competitor** — run the same scan on a rival and diff?
+- **Benchmark a competitor** — `scan.py --compare rival.com` and diff (Mode D)?
+- **Analyze AI bot traffic** — export a server access log and run `bot_traffic.py` (ground truth on which engines crawl you)?
+- **Check agentic-commerce readiness** — for stores: Product schema, feeds, ACP/UCP?
 - **Schedule a weekly re-scan** — track the score over time?
 
 ---

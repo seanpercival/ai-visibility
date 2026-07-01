@@ -1,4 +1,4 @@
-# The 31-Point AEO Checklist
+# The 34-Point AEO Checklist
 
 Grouped into 5 pillars. `scan.py` automates most of these; this file is the
 canonical logic + rationale (for hand-audits and for explaining findings).
@@ -8,7 +8,9 @@ canonical logic + rationale (for hand-audits and for explaining findings).
 can't run (blocked APIs) are excluded from the denominator, not scored as fails.
 
 Evidence anchors: Princeton GEO paper (arXiv 2311.09735); Ahrefs 75K-brand
-correlations; Vercel 500M-crawler study; Seer/Trustpilot 800K study.
+correlations; Vercel 500M-crawler study; Seer/Trustpilot 800K study; AirOps
+548K-page retrieval-vs-citation study; Google's official AI-optimization guide
+(June 2026).
 
 ---
 
@@ -38,7 +40,9 @@ correlations; Vercel 500M-crawler study; Seer/Trustpilot 800K study.
 | C3 | Question-style H2/H3 | Headings ending `?` or starting how/what/why/best… | Matches passage-level retrieval / query fan-out |
 | C4 | Exactly one H1 | Count `<h1>` | Unambiguous topic |
 | C5 | Tables + lists | `<table>` w/ `<th>`, `<ul>/<ol>` | AI reproduces these heavily for "best/compare/steps" |
-| C6 | Freshness signal | `dateModified`, `<time>`, "Updated…" text | AI-cited content is ~26% fresher on average |
+| C6 | Freshness signal | `dateModified`, `<time>`, "Updated…" text | AI-cited content is ~26% fresher on average; ~83% of commercial-query citations come from pages updated in the last 12 months |
+| C7 | Sequential heading hierarchy | H2→H3 nest without skips | Sequential heading structure shows ~2.8× citation lift vs unstructured equivalents |
+| C8 | Fan-out / topic depth | Page answers the obvious sub-questions of its topic (hand-audit; AI engines issue *query fan-out*) | One deep page wins fan-out retrievals; thin variant pages now trip Google's scaled-content spam policy |
 | — | (Penalty) keyword stuffing | keyword over-density | Princeton: stuffing **hurts** (−~10% on Perplexity) |
 
 ## (D) Off-site Authority & Earned Media — 30 (the highest-correlation pillar)
@@ -54,6 +58,14 @@ correlations; Vercel 500M-crawler study; Seer/Trustpilot 800K study.
 *Not auto-checked (do manually or with a SERP/YouTube API):* YouTube channel
 (~200× any other video source), Crunchbase, G2/Capterra/Gartner presence,
 best-of listicle inclusion, consistent NAP across the web.
+
+## (F) Commerce readiness — stores only (informational, not scored)
+
+| # | Check | Detection | Why |
+|---|---|---|---|
+| M1 | Product schema with live Offer | JSON-LD `Product` + `offers.price`/`availability` in raw HTML | Price/availability genuinely feed AI shopping surfaces (the one place schema clearly matters) |
+| M2 | Store platform detected | Shopify/WooCommerce/etc. markers | Determines the ACP/UCP integration path (`reference/agentic_commerce.md`) |
+| M3 | Agentic-checkout readiness | Manual: merchant feed completeness, ACP (ChatGPT Instant Checkout) / UCP (Google) enrollment | AI assistants now *complete* purchases; a store absent from these rails loses the sale even when recommended |
 
 ## (E-entity) Entity Clarity — 20
 

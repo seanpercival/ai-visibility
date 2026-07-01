@@ -93,6 +93,10 @@ BUCKETS = {
         "What are the downsides of {brand}?",
         "Is {brand} legit and safe to use?",
     ],
+    "shopping": [
+        "I want to buy {category}. What do you recommend and where should I order?",
+        "Compare the top {category} options on price and quality - which should I buy?",
+    ],
 }
 
 

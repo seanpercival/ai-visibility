@@ -6,8 +6,9 @@ description: >-
   optimization", "generative engine optimization", "AI visibility", "LLM
   visibility", "AI search", "how does my brand show up in ChatGPT/Claude", or
   when someone wants to "scan my site for AI" or get recommended by AI
-  assistants. Has three modes — Scan a URL, Measure share-of-voice, and
-  Optimize content — backed by a bundled scanner and reference data.
+  assistants. Has four modes — Scan a URL, Measure share-of-voice, Optimize
+  content, and Benchmark a competitor — plus AI bot-traffic log analysis and
+  agentic-commerce readiness, backed by a bundled scanner and reference data.
 license: MIT
 ---
 
@@ -38,13 +39,22 @@ anything — they are what separate this from the snake oil in this category.
    A single blended score is misleading.
 
 4. **Be honest about weak levers.** Schema moves citations ~2% (noise) — keep it
-   for entity clarity. `llms.txt` isn't consumed by AI search engines. Keyword
-   stuffing *hurts*. Say so.
+   for entity clarity. `llms.txt` isn't consumed by AI search engines — Google
+   now states *officially* it ignores it (June 2026 AI-optimization guide), and
+   a 500M-bot-visit study found only ~400 fetches. Keyword stuffing *hurts*.
+   Say so.
 
-5. **AI mentions ≠ traffic, yet** (<1% of web traffic). Frame as brand presence
-   with a compounding head start, not a performance channel.
+5. **Low volume, high intent.** AI referrals are still a small share of traffic,
+   but they convert 4–23× better than organic search (Semrush/Seer/Ahrefs 2026
+   data) — the engine pre-qualifies the visitor. Frame as a compounding
+   high-intent channel, not vanity brand presence.
 
-6. **Never fabricate.** Report only what a check actually found. A check that
+6. **Cover the fan-out, not just the query.** AI engines issue *query fan-out* —
+   concurrent sub-queries around the user's question. Deep pages that cover the
+   related sub-questions win those retrievals. One thorough page beats ten thin
+   variant pages (which now trip Google's scaled-content spam policy).
+
+7. **Never fabricate.** Report only what a check actually found. A check that
    couldn't run is "not checked," never "passed."
 
 ---
@@ -106,6 +116,12 @@ note the manual "lite panel" is available anytime.
 Run the scanner (Mode A), present using `assets/report_template.md`. Lead with the
 score and the biggest gap. If the **Access gate failed**, lead with that.
 
+If the site is a **store** (Product schema, cart links, or a known platform like
+Shopify/WooCommerce detected), also present the agentic-commerce readiness
+findings — for e-commerce brands in 2026 this is often the highest-stakes gap.
+And always offer **Mode D** ("want me to run the same scan on a competitor and
+diff it?") — a score means little without a rival's number next to it.
+
 ### Step 3 — Offer the weekly re-scan (after every scan)
 
 AEO shifts monthly with model updates, so a one-shot score has a short shelf life.
@@ -121,7 +137,7 @@ thing that most separates a real practice from a drive-by report.
 
 ---
 
-## The three modes
+## The four modes
 
 ### Mode A — Scan
 
@@ -133,7 +149,9 @@ python3 scripts/scan.py https://example.com --brand "Example" --json out.json
 
 Zero-dependency (Python 3.8+ stdlib). Fetches `robots.txt`, raw HTML,
 `sitemap.xml`, and free public APIs (Wikipedia, Wikidata, Reddit, Trustpilot),
-runs the 31-point checklist in `reference/checklist.md`, prints a scored report.
+runs the 34-point checklist in `reference/checklist.md`, prints a scored report.
+Stores (Shopify/WooCommerce/Product schema detected) get extra informational
+commerce checks.
 
 Present: executive summary (score, biggest problem, top 3 fixes) → Quick Wins vs
 Strategic Investments → offer Mode C or Mode B. If the **Access gate failed** (AI
@@ -174,8 +192,47 @@ Turn findings into artifacts, drawing on the reference files.
   from `reference/schema_templates.md` (positioned as entity clarity, not a hack).
 - **Earned-media target list** — the highest-leverage output: specific subreddits,
   review platforms (Trustpilot / G2 / Capterra / Gartner by vertical), best-of
-  listicles, and Wikipedia/Wikidata gaps.
-- **Bing Webmaster Tools** — flag if unregistered; Bing feeds ChatGPT and Copilot.
+  listicles, and Wikipedia/Wikidata gaps. Emphasize *authentic* participation —
+  Google's AI guide explicitly warns that inauthentic "mention seeking" gets
+  treated as spam.
+- **Fan-out coverage map** — for each key page, list the sub-questions an AI
+  would fan out to (`reference/prompt_library.md` has the prompt) and mark which
+  the page already answers. Deepen the page; don't spawn thin variants.
+- **Bing Webmaster Tools** — flag if unregistered; Bing feeds Copilot and (still,
+  partially) ChatGPT. Note: ChatGPT's citations have been aligning more with
+  Google's index since early 2026 — treat Bing as cheap insurance, not the
+  whole ChatGPT strategy (see `reference/engine_cheatsheet.md`).
+- **Agentic-commerce readiness** (stores only) — Product schema completeness,
+  merchant feed hygiene, ACP/UCP checklist from `reference/agentic_commerce.md`.
+  If the brand sells online, this is now a first-class output: ChatGPT Instant
+  Checkout (ACP) and Google's UCP mean AI assistants complete purchases, not
+  just recommend.
+
+### Mode D — Benchmark a competitor
+
+Run the same scan on a rival and diff:
+
+```bash
+python3 scripts/scan.py https://example.com --brand "Example" --compare https://rival.com --compare-brand "Rival"
+```
+
+Prints both scorecards plus a pillar-by-pillar gap table. Present the diff as
+"where they beat you and what closing each gap costs." Offer to add the
+competitor to the Mode B panel so share-of-voice tracks the same rivalry.
+
+### Bonus — AI bot-traffic analysis (server logs)
+
+If the user can export a web-server access log (nginx/Apache/CDN), run:
+
+```bash
+python3 scripts/bot_traffic.py access.log
+```
+
+Reports which AI crawlers/agents actually hit the site, how often, what they
+fetched, and flags anomalies (e.g. `OAI-SearchBot` absent = not in ChatGPT's
+index; heavy training-bot crawl of a blocked path = compliance issue). This is
+the free equivalent of the "agent analytics" the commercial platforms charge
+for, and it's *ground truth* — the only non-probabilistic signal in AEO.
 
 ---
 
@@ -219,11 +276,12 @@ is capped at 40.
 
 ## Reference files
 
-- `reference/checklist.md` — the 31 checks, detection logic, weights.
+- `reference/checklist.md` — the 34 checks, detection logic, weights.
 - `reference/engine_cheatsheet.md` — per-engine index & tactics (incl. Claude/Brave).
 - `reference/crawler_tokens.md` — bot tokens + robots.txt rules + sample file.
 - `reference/schema_templates.md` — JSON-LD library (honestly positioned).
 - `reference/prompt_library.md` — measurement panels + optimization prompts.
+- `reference/agentic_commerce.md` — ACP/UCP readiness for stores (new 2026).
 - `assets/report_template.md` — output skeleton.
 
 ---

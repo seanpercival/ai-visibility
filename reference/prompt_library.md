@@ -34,6 +34,11 @@ Fill in `[category]`, `[brand]`, `[competitor]`, `[use case]`, `[persona]`.
 **Trust / risk** (surfaces negative framing + hallucinations)
 - "Is [brand] legit / safe?"  ·  "What are the downsides of [brand]?"
 
+**Shopping / transactional** (for stores — agents now complete purchases)
+- "Buy [category] under [price] — what do you recommend?"
+- "Where should I order a [product type] with fast shipping to [country]?"
+- "Compare [brand product] and [competitor product] — which should I buy?"
+
 For each result, record the 4-outcome grid: **named correctly / named wrong /
 not named / hallucinated** — each maps to a different fix.
 
@@ -80,6 +85,15 @@ End with a one-line "bottom line" recommendation per use case.
 Generate 6–8 FAQs for this page using the real questions buyers ask about
 [topic]. Each answer 40–60 words, direct, no fluff. Output as visible Q&A, then
 (optional) matching FAQPage JSON-LD.
+```
+
+### Fan-out coverage map (query fan-out — Google AIO/AI Mode)
+```
+For the query "[main topic of this page]", list the 8–12 sub-queries an AI
+engine would fan out to (related questions, comparisons, constraints, follow-ups
+a real buyer would have). For each, mark whether the page below already answers
+it well, partially, or not at all. For every gap, propose the H2/H3 and a
+40–60 word answer to add to THIS page — do not propose new pages.
 ```
 
 ### GEO content audit (score a page 1–5)

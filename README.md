@@ -38,13 +38,19 @@ Three design truths it's built around, each from real data (sources at the botto
 
 ---
 
-## What it does — three modes
+## What it does — four modes
 
 | Mode | What you get |
 |---|---|
-| **Scan** | Paste a URL → a 0–100 AEO score across 5 pillars in ~60 seconds, with severity-tagged findings and fixes. |
+| **Scan** | Paste a URL → a 0–100 AEO score across 5 pillars in ~60 seconds, with severity-tagged findings and fixes. Stores also get an agentic-commerce readiness read (ACP/UCP). |
 | **Measure** | Run a prompt panel across engines to see how often your brand appears vs competitors (share of voice — never a fake rank). |
-| **Optimize** | Generate the actual fixes: a corrected `robots.txt`, `Organization`+`sameAs` schema, answer-first content rewrites, and an earned-media target list. |
+| **Optimize** | Generate the actual fixes: a corrected `robots.txt`, `Organization`+`sameAs` schema, answer-first content rewrites, a query fan-out coverage map, and an earned-media target list. |
+| **Benchmark** | `scan.py --compare rival.com` — scan a competitor and get a pillar-by-pillar gap table. |
+
+Plus **AI bot-traffic analysis**: point `scripts/bot_traffic.py` at a server
+access log and see which AI crawlers actually hit your site — the free version
+of what the commercial platforms sell as "agent analytics," and the only
+non-probabilistic signal in this whole field.
 
 It's **guided**: when it runs, it resolves the target domain from context or memory
 (only asking if it can't infer one), offers optional AI API keys to enrich the run
@@ -60,8 +66,9 @@ the first scan.
 Zero dependencies — Python 3.8+ standard library only. Given a URL it fetches
 `robots.txt`, the **raw** HTML (what a non-JS-executing AI crawler actually sees),
 `sitemap.xml`, and queries free public APIs (Wikipedia, Wikidata, Reddit,
-Trustpilot). Then it runs a **31-point checklist** across five pillars and prints a
-scored report.
+Trustpilot). Then it runs a **34-point checklist** across five pillars and prints a
+scored report. Detected stores (Shopify/WooCommerce/Product schema) get extra
+informational commerce checks.
 
 ### The scoring model
 
@@ -158,20 +165,22 @@ python3 scripts/weekly_rescan.py https://example.com --brand "Example" --history
 
 ```
 ai-visibility/
-├── SKILL.md                    # the router: 3 modes, interactive flow, scoring, honesty rules
+├── SKILL.md                    # the router: 4 modes, interactive flow, scoring, honesty rules
 ├── README.md                   # you're reading it
 ├── LICENSE                     # MIT
 ├── build_skill.sh              # builds the installable .skill bundle
 ├── scripts/
-│   ├── scan.py                 # 31-point URL scanner → scored report + JSON
+│   ├── scan.py                 # 34-point URL scanner → scored report + JSON (+ --compare diff)
 │   ├── prompt_panel.py         # share-of-voice measurement across engines
+│   ├── bot_traffic.py          # AI bot-traffic report from a server access log
 │   ├── weekly_rescan.py        # scheduled re-scan + trend history + drop alerts
 │   └── mcp_server.py           # optional MCP wrapper
 ├── reference/
-│   ├── checklist.md            # the 31 checks + detection logic + weights
+│   ├── checklist.md            # the 34 checks + detection logic + weights
 │   ├── engine_cheatsheet.md    # per-engine index & tactics (incl. Claude → Brave)
 │   ├── crawler_tokens.md       # exact bot tokens + robots.txt rules + a sample file
 │   ├── schema_templates.md     # JSON-LD library (honestly positioned)
+│   ├── agentic_commerce.md     # ACP/UCP readiness for stores (new in 2026)
 │   └── prompt_library.md       # measurement panels + content-optimization prompts
 └── assets/
     └── report_template.md      # the output skeleton
@@ -186,8 +195,11 @@ ai-visibility/
   consumer UIs show (Perplexity's API is the exception).
 - Brand-mention *volume* needs a SERP API — v1 uses free APIs and flags the rest.
 - Name-based entity matches (Wikipedia/Wikidata) should be human-confirmed.
-- AI visibility ≠ traffic yet — LLMs send <1% of web traffic today. This is brand-
-  presence work with a compounding head start, not a performance-marketing channel.
+- AI referral volume is still small, but it converts 4–23× better than organic
+  search (2026 Semrush/Seer/Ahrefs data) — treat it as a compounding high-intent
+  channel, not a vanity metric.
+- Agentic browsers (ChatGPT Atlas, Perplexity Comet, Claude for Chrome) present
+  normal browser user agents — log analysis undercounts real AI usage.
 
 ---
 
@@ -200,6 +212,8 @@ This isn't vibes. Key sources:
 - **Vercel** — [AI crawlers don't execute JavaScript](https://vercel.com/blog/the-rise-of-the-ai-crawler) (500M+ requests).
 - **Seer Interactive** — [reviews and AI citation rates](https://www.seerinteractive.com/insights/study-of-800k-ai-responses-how-reviews-shape-brand-presence-in-ai-search) (800K responses).
 - **SparkToro** — [AI recommendations are non-deterministic](https://sparktoro.com/blog/new-research-ais-are-highly-inconsistent-when-recommending-brands-or-products/).
+- **Google's official AI-optimization guide** (June 2026) — [Optimizing for generative AI features](https://developers.google.com/search/docs/fundamentals/ai-optimization-guide): RAG + query fan-out explained; llms.txt/chunking/AI-rewrites officially unnecessary; inauthentic mention-seeking = spam.
+- **OpenAI** — [Buy it in ChatGPT / Agentic Commerce Protocol](https://openai.com/index/buy-it-in-chatgpt/); Google's [UCP](https://ucp.dev/).
 - Official crawler docs: [OpenAI](https://platform.openai.com/docs/bots), [Anthropic](https://support.claude.com/en/articles/8896518), [Perplexity](https://docs.perplexity.ai/guides/bots), [Google](https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers).
 
 ---

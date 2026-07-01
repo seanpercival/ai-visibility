@@ -17,8 +17,11 @@ answers.
 | Perplexity | — | `PerplexityBot` (index), `Perplexity-User` (live fetch) |
 | Google | `Google-Extended` (Gemini training opt-out) | `Googlebot` (powers AI Overviews / AI Mode) |
 | Microsoft | — | `Bingbot` (feeds ChatGPT **and** Copilot) |
-| Apple | `Applebot-Extended` | `Applebot` |
+| Apple | `Applebot-Extended` | `Applebot` (Siri / Apple Intelligence answers) |
+| Meta | `Meta-ExternalAgent` (Llama training) | `Meta-ExternalFetcher` (user-triggered) |
 | Common Crawl | `CCBot` (trains many models) | — |
+| ByteDance | `Bytespider` (undocumented; mixed robots.txt compliance) | — |
+| xAI / Grok | no officially documented crawler token | — |
 
 Key non-obvious facts:
 - **`Google-Extended` is training-only.** Blocking it does **not** remove you
@@ -32,6 +35,13 @@ Key non-obvious facts:
   undeclared crawlers — compliance is contested.)
 - **Legacy Anthropic tokens** `anthropic-ai` and `Claude-Web` are deprecated;
   update old robots.txt to `ClaudeBot` / `Claude-SearchBot`.
+- **robots.txt is honor-system.** Major vendors' training bots comply, but
+  `Bytespider`, `CCBot`, and some others have mixed records. For a *hard* block,
+  enforce at server/CDN level (403 by user agent or verified IP range) — and
+  know that **agentic browsers** (Atlas, Comet, Claude for Chrome) present a
+  normal browser UA and can't be filtered by robots.txt at all.
+- **Verify, don't trust the UA string.** Spoofing is common; when it matters,
+  verify crawler identity via the vendor's published IP ranges / reverse DNS.
 
 ## robots.txt parsing rules (RFC 9309)
 

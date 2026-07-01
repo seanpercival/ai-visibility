@@ -74,20 +74,31 @@ Do **not** open with a blank "what's your URL?" if you can infer it. In order:
 
 Only fall back to a plain open-ended question if AskUserQuestion isn't available.
 
-### Step 1 — Offer enrichment (optional API keys)
+### Step 1 — Offer enrichment (optional live AI measurement)
 
 The URL scan needs nothing. Live multi-engine measurement (Mode B) is richer but
-optional. After the domain is set, ask with AskUserQuestion whether to enrich:
+optional. After the domain is set, run this mini-flow:
 
-- **"Basic scan"** (default, works now) — on-site + entity + off-site signals.
-- **"Add AI API keys for live share-of-voice"** — measures how often the brand
-  actually appears in ChatGPT / Perplexity / Claude / Gemini. If chosen, tell
-  them to set whichever env vars they have — *any one is enough to start*:
-  `OPENAI_API_KEY`, `PERPLEXITY_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`.
-  Perplexity is the most representative (it retrieves live web). **Never ask them
-  to paste a key into chat** — it's an environment variable they set themselves.
+1. **Ask which engines** with AskUserQuestion (`multiSelect: true`) — ChatGPT
+   (OpenAI), Perplexity, Claude (Anthropic), Gemini (Google), plus a
+   "Skip — basic scan only" option. *Any single engine is enough to start;*
+   Perplexity is the most representative because it retrieves live web.
+2. **Show where to get a key** for each engine they picked (also in
+   `reference/api_keys.md` and via `python3 scripts/prompt_panel.py keys`):
+   - OpenAI → https://platform.openai.com/api-keys
+   - Perplexity → https://www.perplexity.ai/settings/api
+   - Anthropic → https://console.anthropic.com/settings/keys
+   - Google Gemini → https://aistudio.google.com/app/apikey
+3. **Collect the key(s)** — the user pastes one or more. Store them in a local
+   `.env` file in the working folder, one `KEY=value` per line using the exact
+   env-var names: `OPENAI_API_KEY`, `PERPLEXITY_API_KEY`, `ANTHROPIC_API_KEY`,
+   `GEMINI_API_KEY`. `prompt_panel.py` auto-loads `.env` on every run.
+4. **Security:** `.env` is gitignored — never commit it, never save keys to
+   memory, never echo a full key back (mask it, e.g. `sk-abc…`). It stays in the
+   sandbox working folder for this session's runs; tell the user they can delete
+   it anytime.
 
-Keys are optional enrichment, never a blocker. If skipped, run the basic scan and
+Keys are optional enrichment, never a blocker. If they skip, run the basic scan and
 note the manual "lite panel" is available anytime.
 
 ### Step 2 — Run the scan and present

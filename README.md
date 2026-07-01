@@ -138,10 +138,13 @@ python3 scripts/weekly_rescan.py https://example.com --brand "Example" --history
 
 - **MCP server** (only dependency in the project) — makes the scan callable from any
   MCP client: `pip install "mcp[cli]"` then `python3 scripts/mcp_server.py`.
-- **Live multi-engine measurement** — set any of `OPENAI_API_KEY`,
-  `PERPLEXITY_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`. Without keys, the
-  panel prints for manual logged-out testing. Perplexity's API is the most
-  representative because it retrieves live web.
+- **Live multi-engine measurement** — add any of `OPENAI_API_KEY`,
+  `PERPLEXITY_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY` in a local `.env`
+  file (one `KEY=value` per line) or as env vars. Run
+  `python3 scripts/prompt_panel.py keys` to see where to get each key and which
+  are set. Without keys, the panel prints for manual logged-out testing.
+  Perplexity's API is the most representative (it retrieves live web). See
+  [`reference/api_keys.md`](reference/api_keys.md).
 
 ### Build the `.skill` bundle yourself
 

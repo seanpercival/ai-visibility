@@ -39,6 +39,35 @@ import time
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 
+# --------------------------------------------------------------- keys / .env
+
+# engine -> (env var, where to get a key)
+KEY_META = {
+    "openai":     ("OPENAI_API_KEY",     "https://platform.openai.com/api-keys"),
+    "perplexity": ("PERPLEXITY_API_KEY", "https://www.perplexity.ai/settings/api"),
+    "anthropic":  ("ANTHROPIC_API_KEY",  "https://console.anthropic.com/settings/keys"),
+    "gemini":     ("GEMINI_API_KEY",     "https://aistudio.google.com/app/apikey"),
+}
+
+
+def load_dotenv(path=".env"):
+    """Load KEY=VALUE lines from a local .env into os.environ (no overwrite)."""
+    if not os.path.isfile(path):
+        return
+    try:
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, _, v = line.partition("=")
+                k, v = k.strip(), v.strip().strip('"').strip("'")
+                if k and k not in os.environ:
+                    os.environ[k] = v
+    except OSError:
+        pass
+
+
 # --------------------------------------------------------------- panel gen
 
 BUCKETS = {
@@ -196,20 +225,22 @@ def sentiment_near(text, name):
 def run_panel(cfg, runs, engines):
     brand = cfg["brand"]
     competitors = cfg.get("competitors", [])
+    load_dotenv()  # pick up keys from a local .env if present
     # Detect available engines by env var (no API call needed).
     active = {}
-    keymap = {"openai": "OPENAI_API_KEY", "perplexity": "PERPLEXITY_API_KEY",
-              "anthropic": "ANTHROPIC_API_KEY", "gemini": "GEMINI_API_KEY"}
     for name, fn in ENGINES.items():
         if engines and name not in engines:
             continue
-        if os.environ.get(keymap[name]):
+        if os.environ.get(KEY_META[name][0]):
             active[name] = fn
 
     if not active:
-        print("No engine API keys found. Set one or more of:")
-        for k in keymap.values():
-            print(f"   export {k}=...")
+        print("No engine API keys found. Add at least one (any single engine works):\n")
+        for name, (env_var, url) in KEY_META.items():
+            print(f"   {env_var:<18} {name:<11} get a key -> {url}")
+        print("\nStore them in a .env file in this folder (one KEY=value per line), or export them,")
+        print("then re-run. Perplexity is the most representative (it retrieves live web).")
+        print("Run  python3 prompt_panel.py keys  to see where to get each key.")
         print("\nPanel is ready to run once a key is set. Prompts:")
         for p in cfg["prompts"]:
             print(f"   [{p['bucket']}] {p['prompt']}")
@@ -290,6 +321,8 @@ def main():
     r.add_argument("--engines", default="", help="comma-separated subset (default: all with keys)")
     r.add_argument("--json", default="")
 
+    sub.add_parser("keys", help="Show where to get API keys + which are set")
+
     args = ap.parse_args()
 
     if args.cmd == "generate":
@@ -313,6 +346,16 @@ def main():
             with open(args.json, "w") as f:
                 json.dump({"config": cfg, "runs": args.runs, "results": results}, f, indent=2)
             print(f"\n[written] {args.json}")
+
+    elif args.cmd == "keys":
+        load_dotenv()
+        print("AI engine API keys — add any one to enable live measurement:\n")
+        for name, (env_var, url) in KEY_META.items():
+            cur = os.environ.get(env_var)
+            state = f"set ({cur[:6]}...)" if cur else "not set"
+            print(f"  {name:<11} {env_var:<18} [{state:<14}] {url}")
+        print("\nStore keys in a .env file (KEY=value per line) in your working folder.")
+        print("Never commit .env (it's gitignored). Perplexity retrieves live web — most representative.")
 
 
 if __name__ == "__main__":

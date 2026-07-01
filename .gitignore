@@ -12,6 +12,10 @@ history.csv
 aeo_history.csv
 out.json
 
+# Secrets — API keys live here, never commit them
+.env
+.env.*
+
 # OS / editor
 .DS_Store
 Thumbs.db

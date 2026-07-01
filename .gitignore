@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Generated scan / measurement outputs
+*_results.json
+panel.json
+history.csv
+aeo_history.csv
+out.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
